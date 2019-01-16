@@ -1,4 +1,5 @@
 import java.util.Collection;
+import java.util.Queue;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,10 +26,8 @@ public class VacumAgent {
                 String perceptName = perceptNameMatcher.group(1);
                 if (perceptName.equals("HOME")) {
                     Matcher m = Pattern.compile("\\(\\s*HOME\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
+                    // TODO: brjóta niður DIRT, OBSTACLE
                     if (m.matches()) {
-
-
-
                         System.out.println("robot is at " + m.group(1) + "," + m.group(2));
                         /*
                         State firstState = new State(
@@ -51,9 +50,11 @@ public class VacumAgent {
                             this.score = 0;
                         }
                         */
+                    }
+                    m = Pattern.compile("\\(\\s*AT DIRT\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
 
-
-
+                    if(m.matches()) {
+                        System.out.println("FOUND DIRT at " + m.group(1));
                     }
                 } else {
                     System.out.println("other percept:" + percept);

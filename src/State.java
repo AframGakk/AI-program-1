@@ -58,7 +58,6 @@ public class State {
                     nState.executeMove(Action.GO);
                     successors.add(nState);
                 }
-
                 break;
             case WEST:
                 if(position.getX() > 0 && map[position.getX() - 1][position.getY()] != 2) {
@@ -85,7 +84,6 @@ public class State {
                 System.out.println("Invalid orientation");
         }
 
-        // TODO: eigum við að tékka þetta eitthvað??
         nState = new State(this);
         nState.executeMove(Action.TURN_OFF);
         successors.add(nState);
