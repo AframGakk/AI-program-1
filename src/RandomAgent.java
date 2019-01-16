@@ -32,7 +32,8 @@ public class RandomAgent implements Agent
 						System.out.println("robot is at " + m.group(1) + "," + m.group(2));
 					}
 				} else {
-					System.out.println("other percept:" + percept);
+					System.out.println("PERCEPT: " + perceptName);
+					System.out.println("PERCEPT COUNT" + perceptNameMatcher.groupCount());
 				}
 			} else {
 				System.err.println("strange percept that does not match pattern: " + percept);
