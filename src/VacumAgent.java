@@ -77,9 +77,9 @@ public class VacumAgent {
 
                     }
                     if(preceptOrientation.equals("ORIENTATION")) {
-                        Matcher m2 = Pattern.compile("\\(\\s*ORIENTATION\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
-                        if(m.matches()) {
-                            System.out.println("dir is " + m.group(1));
+                        Matcher m5 = Pattern.compile("\\(\\s*ORIENTATION+\\s*([^\\s]+).*\\)").matcher(percept);
+                        if(m5.matches()) {
+                            System.out.println("orientation is " + m.group(1));
                             //adda inni eitthvað
                         }
                         
