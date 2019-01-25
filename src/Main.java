@@ -11,7 +11,7 @@ public class Main {
 			// TODO: put in your agent here
 			Agent agent = new RandomAgent();
 
-			int port=4001;
+			int port=4004;
 			if(args.length>=1){
 				port=Integer.parseInt(args[0]);
 			}
