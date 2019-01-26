@@ -4,7 +4,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class VacumAgent {
+public class VacumAgent implements Agent {
     private Stack<Action> actions;
 
     public void init(Collection<String> percepts) {
@@ -56,14 +56,14 @@ public class VacumAgent {
                     if(perceptName.equals("SIZE")) {
                         Matcher m2 = Pattern.compile("\\(\\s*SIZE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m2.matches()) {
-                            System.out.println("size is " + m.group(1) + "," + m.group(2));
+                            System.out.println("size is " + m2.group(1) + "," + m2.group(2));
                             //adda inni eitthvað
                         }
                     }
                     if(perceptName.equals("AT DIRT")) {
                         Matcher m3 = Pattern.compile("\\(\\s*AT DIRT\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m3.matches()) {
-                            System.out.println("dirt is at " + m.group(1) + "," + m.group(2));
+                            System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
                             //adda inni eitthvað
                         }
 
@@ -71,7 +71,7 @@ public class VacumAgent {
                     if(perceptName.equals("AT OBSTACLE")) {
                         Matcher m4 = Pattern.compile("\\(\\s*AT OBSTACLE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m4.matches()) {
-                            System.out.println("obstacle is at " + m.group(1) + "," + m.group(2));
+                            System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
                             //adda inni eitthvað
                         }
 
@@ -79,7 +79,7 @@ public class VacumAgent {
                     if(preceptOrientation.equals("ORIENTATION")) {
                         Matcher m5 = Pattern.compile("\\(\\s*ORIENTATION+\\s*([^\\s]+).*\\)").matcher(percept);
                         if(m5.matches()) {
-                            System.out.println("orientation is " + m.group(1));
+                            System.out.println("orientation is " + m5.group(1));
                             //adda inni eitthvað
                         }
                         
