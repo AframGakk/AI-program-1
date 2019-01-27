@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VacumAgent implements Agent {
-    private Stack<Action> actions;
+    private Queue<Action> actions;
     StateNode root;
 
     public void init(Collection<String> percepts) {
@@ -101,12 +101,14 @@ public class VacumAgent implements Agent {
         }
 
         root = new StateNode(new State(position, orientation, initMap, dirtCount));
+        actions = new LinkedList<>();
 
         // TODO: setja inn algorithma
+        BFdumbSearch();
 
     }
 
-    public void dumbSearch() {
+    public void BFdumbSearch() {
         LinkedList<StateNode> frontier = new LinkedList<>();
         boolean done = false;
 
@@ -114,19 +116,22 @@ public class VacumAgent implements Agent {
 
         while (!done) {
             StateNode tmpNode = frontier.pop();
+            this.actions.add(tmpNode.getAction());
 
-            for (State child: tmpNode.getSuccessors()) {
-                if(child.goalTest()) {
+            for (StateNode child: tmpNode.successorStates()) {
+                if(child.getState().goalTest()) {
                     // TODO: returna action lista
+                    this.actions.add(tmpNode.getAction());
+                    done = true;
                 }
-                frontier.addLast(new StateNode());
+                frontier.addLast(child);
             }
         }
     }
 
 
     public String nextAction(Collection<String> percepts) {
-        Action next = this.actions.pop();
+        Action next = this.actions.remove();
 
         switch (next) {
             case TURN_RIGHT:

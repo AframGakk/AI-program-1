@@ -27,6 +27,7 @@ public class State {
         this.map = map;
         this.dirtCount = dirtCount;
         this.score = 0;
+        this.on = false;
     }
 
     public State(State newState) {
@@ -71,6 +72,10 @@ public class State {
         return map;
     }
 
+    public int getDirtCount() {
+        return dirtCount;
+    }
+
     public boolean goalTest() {
         return (dirtCount == 0) && (position == home) && (on == false);
     }
@@ -91,7 +96,7 @@ public class State {
         }
 
         // If position contains dirt
-        if (map[position.getX()][position.getX()] == 1) {
+        if (map[position.getX()][position.getY()] == 1) {
             nState = new State(this);
             nState.executeMove(Action.SUCK);
             successors.add(nState);
@@ -167,7 +172,7 @@ public class State {
                         this.position.decrX();
                         break;
                     case NORTH:
-                        this.position.incrX();
+                        this.position.incrY();
                         break;
                     case SOUTH:
                         this.position.decrY();
@@ -204,8 +209,9 @@ public class State {
                         break;
                     case WEST:
                         this.orientation = Orientation.SOUTH;
+                        break;
                     default:
-                        System.out.println("Invalid orientation");
+                        System.out.println("Invalid orientation in TURN_LEFT");
                 }
                 this.score++;
                 break;
@@ -222,8 +228,9 @@ public class State {
                         break;
                     case WEST:
                         this.orientation = Orientation.NORTH;
+                        break;
                     default:
-                        System.out.println("Invalid orientation");
+                        System.out.println("Invalid orientation in TURN_RIGHT");
 
                 }
                 this.score++;
@@ -231,5 +238,10 @@ public class State {
             default:
                 System.out.println("Invalid action");
         }
+    }
+
+    public void printStateCheck() {
+        System.out.println("Dirt Count: " + this.dirtCount);
+        System.out.println("Position: (" + this.position.getX() + ", " + this.position.getY() + ")");
     }
 }

@@ -5,7 +5,6 @@ public class StateNode {
     private State state;
     // the action that led it here
     private Action action;
-    private List<State> successors;
 
     public StateNode() {
 
@@ -18,13 +17,13 @@ public class StateNode {
     public StateNode(State state, Action action) {
         this.state = state;
         this.action = action;
-        this.successors = state.successorStates();
     }
 
     public List<StateNode> successorStates() {
         List<StateNode> successors = new ArrayList<>();
         StateNode nStateNode;
         State nState;
+
 
         if (!this.state.isOn()) {
             nState = new State(this.state);
@@ -35,23 +34,28 @@ public class StateNode {
             return successors;
         }
 
+        this.state.printStateCheck();
+
+
         // If position contains dirt
         if (this.state.getMap()[this.state.getPosition().getX()][this.state.getPosition().getY()] == 1) {
             nState = new State(this.state);
             nState.executeMove(Action.SUCK);
             nStateNode = new StateNode(nState, Action.SUCK);
             successors.add(nStateNode);
+            return successors;
         }
 
         switch (this.state.getOrientation()) {
             case EAST:
                 // if position on x axis is NOT at the end of the environment
-                if(this.state.getPosition().getX() < this.state.getMap().length &&
-                        this.state.getMap()[this.state.getPosition().getX() + 1][this.state.getPosition().getY()] != 2) {
-                    nState = new State(this.state);
-                    nState.executeMove(Action.GO);
-                    nStateNode = new StateNode(nState, Action.GO);
-                    successors.add(nStateNode);
+                if(this.state.getPosition().getX() + 1 < this.state.getMap().length) {
+                    if(this.state.getMap()[this.state.getPosition().getX() + 1][this.state.getPosition().getY()] != 2) {
+                        nState = new State(this.state);
+                        nState.executeMove(Action.GO);
+                        nStateNode = new StateNode(nState, Action.GO);
+                        successors.add(nStateNode);
+                    }
                 }
                 break;
             case WEST:
@@ -64,16 +68,17 @@ public class StateNode {
                 }
                 break;
             case NORTH:
-                if(this.state.getPosition().getY() > 0 &&
-                        this.state.getMap()[this.state.getPosition().getX()][this.state.getPosition().getY() + 1] != 2) {
-                    nState = new State(this.state);
-                    nState.executeMove(Action.GO);
-                    nStateNode = new StateNode(nState, Action.GO);
-                    successors.add(nStateNode);
+                if(this.state.getPosition().getY() + 1 < this.state.getMap()[0].length ) {
+                    if((this.state.getMap()[this.state.getPosition().getX()][this.state.getPosition().getY() + 1] != 2)) {
+                        nState = new State(this.state);
+                        nState.executeMove(Action.GO);
+                        nStateNode = new StateNode(nState, Action.GO);
+                        successors.add(nStateNode);
+                    }
                 }
                 break;
             case SOUTH:
-                if(this.state.getPosition().getY() < this.state.getMap()[0].length &&
+                if(this.state.getPosition().getY() > 0 &&
                         this.state.getMap()[this.state.getPosition().getX()][this.state.getPosition().getY() - 1] != 2) {
                     nState = new State(this.state);
                     nState.executeMove(Action.GO);
@@ -102,10 +107,6 @@ public class StateNode {
         return successors;
     }
 
-    public List<State> getSuccessors() {
-        return successors;
-    }
-
     public void setState(State state) {
         this.state = state;
     }
@@ -121,4 +122,6 @@ public class StateNode {
     public State getState() {
         return state;
     }
+
+
 }

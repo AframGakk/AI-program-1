@@ -59,4 +59,9 @@ public class Position {
 
         return (this.X == other.X) && (this.Y == other.Y);
     }
+
+    @Override
+    public String toString() {
+        return "Position: (" + this.X + ", " + this.Y +")";
+    }
 }
