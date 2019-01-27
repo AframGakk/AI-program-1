@@ -1,4 +1,5 @@
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -6,9 +7,16 @@ import java.util.regex.Pattern;
 
 public class VacumAgent implements Agent {
     private Stack<Action> actions;
+    StateNode root;
 
     public void init(Collection<String> percepts) {
-        StateNode root;
+        State initState = new State();
+
+        int initMap[][] = new int[100][100];
+        int dirtCount = 0;
+        Position position = new Position(0,0);
+        Orientation orientation = Orientation.NORTH;
+
 
 		/*
 			Possible percepts are:
@@ -30,41 +38,32 @@ public class VacumAgent implements Agent {
                     // TODO: brjóta niður DIRT, OBSTACLE
                     if (m.matches()) {
                         System.out.println("robot is at " + m.group(1) + "," + m.group(2));
-                        /*
-                        State firstState = new State(
-                                new Position(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))),
-                                Orientation.EAST,
 
-                        );
-
-                        */
-                        root = new StateNode();
-
-                        /*
-                        public State(Position position, Orientation orientation,
-                        int map[][], int dirtCount) {
-                            this.position = position;
-                            this.home = position;
-                            this.orientation = orientation;
-                            this.map = map;
-                            this.dirtCount = dirtCount;
-                            this.score = 0;
-                        }
-                        */
+                        position = new Position(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
                     }
                 }
                     if(perceptName.equals("SIZE")) {
                         Matcher m2 = Pattern.compile("\\(\\s*SIZE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m2.matches()) {
                             System.out.println("size is " + m2.group(1) + "," + m2.group(2));
-                            //adda inni eitthvað
+                            // TODO: init stærð kortsinns
+                            int x = Integer.parseInt(m2.group(1));
+                            int y = Integer.parseInt(m2.group(2));
+                            initMap = new int[x][y];
+                            for (int i = 0; i < x; i++) {
+                                for (int j = 0; j < y; j++) {
+                                    initMap[i][j] = 0;
+                                }
+                            }
                         }
                     }
                     if(perceptName.equals("AT DIRT")) {
                         Matcher m3 = Pattern.compile("\\(\\s*AT DIRT\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m3.matches()) {
                             System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
-                            //adda inni eitthvað
+
+                            initMap[Integer.parseInt(m3.group(1))][Integer.parseInt(m3.group(2))] = 1;
+                            dirtCount++;
                         }
 
                     }
@@ -72,7 +71,8 @@ public class VacumAgent implements Agent {
                         Matcher m4 = Pattern.compile("\\(\\s*AT OBSTACLE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m4.matches()) {
                             System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
-                            //adda inni eitthvað
+
+                            initMap[Integer.parseInt(m4.group(1))][Integer.parseInt(m4.group(2))] = 2;
                         }
 
                     }
@@ -81,24 +81,49 @@ public class VacumAgent implements Agent {
                         if(m5.matches()) {
                             System.out.println("orientation is " + m5.group(1));
                             //adda inni eitthvað
+                            switch (m5.group(1)) {
+                                case "NORTH":
+                                    orientation = Orientation.NORTH;
+                                    break;
+                                case "SOUTH":
+                                    orientation = Orientation.SOUTH;
+                                    break;
+                                case "EAST":
+                                    orientation = Orientation.EAST;
+                                    break;
+                                default:
+                                    orientation = Orientation.WEST;
+                            }
                         }
                         
                     }
-                }}
-
-                    /*
-                    m = Pattern.compile("\\(\\s*AT DIRT\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
-
-                    if(m.matches()) {
-                        System.out.println("FOUND DIRT at " + m.group(1));
-                    }
-                } else {
-                    System.out.println("other percept:" + percept);
                 }
-            } else {
-                System.err.println("strange percept that does not match pattern: " + percept);
-            }*/
+        }
+
+        root = new StateNode(new State(position, orientation, initMap, dirtCount));
+
+        // TODO: setja inn algorithma
+
     }
+
+    public void dumbSearch() {
+        LinkedList<StateNode> frontier = new LinkedList<>();
+        boolean done = false;
+
+        frontier.add(root);
+
+        while (!done) {
+            StateNode tmpNode = frontier.pop();
+
+            for (State child: tmpNode.getSuccessors()) {
+                if(child.goalTest()) {
+                    // TODO: returna action lista
+                }
+                frontier.addLast(new StateNode());
+            }
+        }
+    }
+
 
     public String nextAction(Collection<String> percepts) {
         Action next = this.actions.pop();
@@ -128,4 +153,6 @@ public class VacumAgent implements Agent {
         return actions[random.nextInt(actions.length)];
         */
     }
+
+
 }

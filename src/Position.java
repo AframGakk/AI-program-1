@@ -1,3 +1,5 @@
+import javax.naming.event.ObjectChangeListener;
+
 public class Position {
     private int X;
     private int Y;
@@ -41,5 +43,20 @@ public class Position {
 
     public void decrY() {
         this.Y--;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+
+        if (!Position.class.isAssignableFrom(o.getClass())) {
+            return false;
+        }
+
+        Position other = (Position) o;
+
+        return (this.X == other.X) && (this.Y == other.Y);
     }
 }

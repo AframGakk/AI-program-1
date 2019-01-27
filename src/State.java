@@ -8,9 +8,16 @@ public class State {
     private Position home;
     private boolean on;
     private Orientation orientation;
+    /**
+     * 0 = empty location
+     * 1 = dirt location
+     * 2 = obstacle location
+     * */
     private int map[][];
     private int dirtCount;
     private int score;
+
+    public State() {}
 
     public State(Position position, Orientation orientation,
                  int map[][], int dirtCount) {
@@ -30,6 +37,46 @@ public class State {
         this.map = newState.map;
         this.dirtCount = newState.dirtCount;
         this.score = newState.score;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public Position getHome() {
+        return home;
+    }
+
+    public void setHome(Position home) {
+        this.home = home;
+    }
+
+    public void setMap(int[][] map) {
+        this.map = map;
+    }
+
+    public Orientation getOrientation() {
+        return orientation;
+    }
+
+    public void setOrientation(Orientation orientation) {
+        this.orientation = orientation;
+    }
+
+    public int[][] getMap() {
+        return map;
+    }
+
+    public boolean goalTest() {
+        return (dirtCount == 0) && (position == home) && (on == false);
+    }
+
+    public boolean isOn() {
+        return this.on;
     }
 
     public List<State> successorStates() {
