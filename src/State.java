@@ -88,6 +88,13 @@ public class State {
         List<State> successors = new ArrayList<>();
         State nState;
 
+        if (dirtCount == 0 && position == home) {
+            nState = new State(this);
+            nState.executeMove(Action.TURN_OFF);
+            successors.add(nState);
+            return successors;
+        }
+
         if (!this.on) {
             nState = new State(this);
             nState.executeMove(Action.TURN_ON);
@@ -100,6 +107,7 @@ public class State {
             nState = new State(this);
             nState.executeMove(Action.SUCK);
             successors.add(nState);
+            return successors;
         }
 
         switch (this.orientation) {
@@ -136,9 +144,7 @@ public class State {
                 System.out.println("Invalid orientation");
         }
 
-        nState = new State(this);
-        nState.executeMove(Action.TURN_OFF);
-        successors.add(nState);
+
 
         nState = new State(this);
         nState.executeMove(Action.TURN_LEFT);
@@ -154,11 +160,11 @@ public class State {
     public void executeMove(Action action) {
         switch (action) {
             case SUCK:
-                if(this.map[position.getX()][position.getY()] != 1) {
+                if(this.map[position.getY()][position.getX()] != 1) {
                     this.score += 5;
                     break;
                 } else {
-                    this.map[position.getX()][position.getY()] = 0;
+                    this.map[position.getY()][position.getX()] = 0;
                     this.dirtCount--;
                     this.score++;
                 }
@@ -166,10 +172,10 @@ public class State {
             case GO:
                 switch (this.orientation) {
                     case EAST:
-                        this.position.incrX();
+                        this.position.decrX();
                         break;
                     case WEST:
-                        this.position.decrX();
+                        this.position.incrX();
                         break;
                     case NORTH:
                         this.position.incrY();
@@ -243,5 +249,47 @@ public class State {
     public void printStateCheck() {
         System.out.println("Dirt Count: " + this.dirtCount);
         System.out.println("Position: (" + this.position.getX() + ", " + this.position.getY() + ")");
+        System.out.println("Orientation: " + this.orientation);
+        System.out.println("Map position: " + this.getMap()[this.position.getY()][this.position.getX()]);
+        printMap();
+    }
+
+    public void printMap() {
+        /*
+        for(int i = 0; i < map.length; i++) {
+            for(int j = 0; j < map[i].length - 1; i++) {
+                System.out.print(map[i][j]);
+            }
+            System.out.println();
+        }
+        */
+        this.map[this.position.getY()][this.position.getX()] = 8;
+
+        for (int[] i : map) {
+            for (int j : i) {
+                System.out.print(j + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        State other = (State) obj;
+        if (position != other.getPosition())
+            return false;
+        if (on != other.isOn())
+            return false;
+        if (orientation != other.getOrientation())
+            return false;
+        if (dirtCount != other.getDirtCount())
+            return false;
+        return true;
     }
 }

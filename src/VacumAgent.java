@@ -1,7 +1,4 @@
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +13,8 @@ public class VacumAgent implements Agent {
         int dirtCount = 0;
         Position position = new Position(0,0);
         Orientation orientation = Orientation.NORTH;
+        List<Position> dirtList = new ArrayList<>();
+        List<Position> obstacleList = new ArrayList<>();
 
 
 		/*
@@ -39,7 +38,7 @@ public class VacumAgent implements Agent {
                     if (m.matches()) {
                         System.out.println("robot is at " + m.group(1) + "," + m.group(2));
 
-                        position = new Position(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
+                        position = new Position(Integer.parseInt(m.group(1)) - 1, Integer.parseInt(m.group(2)) - 1);
                     }
                 }
                     if(perceptName.equals("SIZE")) {
@@ -62,7 +61,7 @@ public class VacumAgent implements Agent {
                         if(m3.matches()) {
                             System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
 
-                            initMap[Integer.parseInt(m3.group(1))][Integer.parseInt(m3.group(2))] = 1;
+                            dirtList.add(new Position(Integer.parseInt(m3.group(1)), Integer.parseInt(m3.group(2))));
                             dirtCount++;
                         }
 
@@ -72,6 +71,7 @@ public class VacumAgent implements Agent {
                         if(m4.matches()) {
                             System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
 
+                            obstacleList.add(new Position(Integer.parseInt(m4.group(1)), Integer.parseInt(m4.group(2))));
                             initMap[Integer.parseInt(m4.group(1))][Integer.parseInt(m4.group(2))] = 2;
                         }
 
@@ -100,8 +100,22 @@ public class VacumAgent implements Agent {
                 }
         }
 
+        for(Position pos : dirtList) {
+            initMap[pos.getX() - 1][pos.getY() - 1] = 1;
+        }
+
+        for(Position pos : obstacleList) {
+            initMap[pos.getX() - 1][pos.getY() - 1] = 2;
+        }
+
         root = new StateNode(new State(position, orientation, initMap, dirtCount));
+        root.setPathCost(0);
         actions = new LinkedList<>();
+
+        root.getState().printMap();
+        //System.out.println(root.getState().getMap()[0][1]);
+
+
 
         // TODO: setja inn algorithma
         BFdumbSearch();
@@ -110,24 +124,130 @@ public class VacumAgent implements Agent {
 
     public void BFdumbSearch() {
         LinkedList<StateNode> frontier = new LinkedList<>();
+        Set<Integer> visited = new HashSet<>();
         boolean done = false;
 
         frontier.add(root);
 
-        while (!done) {
-            StateNode tmpNode = frontier.pop();
-            this.actions.add(tmpNode.getAction());
+        while (!frontier.isEmpty()) {
+            StateNode tmpNode = frontier.remove();
+
+            System.out.println("XXXXXXXXXXXXXXXXXXXX");
+            for(StateNode i : frontier) {
+                System.out.println(i.getAction() + " ");
+            }
+            System.out.println("XXXXXXXXXXXXXXXXXXXX");
+
+            System.out.println("====================");
+            System.out.println("       Expanding    ");
+            System.out.println(tmpNode.getAction());
+            tmpNode.getState().printStateCheck();
+
+            visited.add(tmpNode.hashCode());
+
+
+
+
+
+            //tmpNode.getState().printStateCheck();
 
             for (StateNode child: tmpNode.successorStates()) {
-                if(child.getState().goalTest()) {
-                    // TODO: returna action lista
-                    this.actions.add(tmpNode.getAction());
-                    done = true;
+                System.out.println("--------------------");
+                System.out.println(child.getAction());
+                System.out.println(child.getState().getOrientation());
+                child.getState().printStateCheck();
+
+                if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
+                    if(child.getState().goalTest()) {
+                        // TODO: returna action lista
+                        this.actions.add(child.getAction());
+                        while (tmpNode.getParent() != null) {
+                            this.actions.add(tmpNode.getAction());
+                            tmpNode = tmpNode.getParent();
+                        }
+                        return;
+                    }
+                    child.setParent(tmpNode);
+                    frontier.add(child);
                 }
-                frontier.addLast(child);
+            }
+            System.out.println("=====================");
+
+        }
+    }
+
+    public void DFS() {
+        LinkedList<StateNode> frontier = new LinkedList<>();
+        Set<Integer> visited = new HashSet<>();
+        boolean done = false;
+
+        frontier.add(root);
+
+        while (!frontier.isEmpty()) {
+            StateNode tmpNode = frontier.remove();
+
+            visited.add(tmpNode.hashCode());
+
+            for (StateNode child: tmpNode.successorStates()) {
+
+                if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
+                    if(child.getState().goalTest()) {
+                        this.actions.add(child.getAction());
+                        while (tmpNode.getParent() != null) {
+                            this.actions.add(tmpNode.getAction());
+                            tmpNode = tmpNode.getParent();
+                        }
+                        return;
+                    }
+                    child.setParent(tmpNode);
+                    frontier.addFirst(child);
+                }
             }
         }
     }
+
+    public void uniformSearch() {
+        PriorityQueue<StateNode> frontier = new PriorityQueue<>();
+        Set<Integer> visited = new HashSet<>();
+        boolean done = false;
+
+        frontier.add(root);
+
+        while(!frontier.isEmpty()) {
+            StateNode tmpNode = frontier.remove();
+            if(tmpNode.getState().goalTest()) {
+                this.actions.add(tmpNode.getAction());
+                while (tmpNode.getParent() != null) {
+                    this.actions.add(tmpNode.getAction());
+                    tmpNode = tmpNode.getParent();
+                }
+                return;
+            }
+
+            visited.add(tmpNode.hashCode());
+
+            for (StateNode child : tmpNode.successorStates()) {
+                if(!frontier.contains(child) && !visited.contains(child.hashCode())) {
+                    frontier.add(child);
+                } else if (frontier.contains(child)) {
+                    for(StateNode node : frontier) {
+                        if(node == child) {
+                            if (child.getPathCost() < node.getPathCost()) {
+                                frontier.remove(node);
+                                frontier.add(child);
+                                break;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+
+
+        }
+    }
+
 
 
     public String nextAction(Collection<String> percepts) {
