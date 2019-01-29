@@ -3,18 +3,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VacumAgent implements Agent {
-    private Queue<Action> actions;
+    private LinkedList<Action> actions;
     StateNode root;
 
     public void init(Collection<String> percepts) {
         State initState = new State();
 
-        int initMap[][] = new int[100][100];
+        Position size = new Position(0, 0);
         int dirtCount = 0;
         Position position = new Position(0,0);
         Orientation orientation = Orientation.NORTH;
-        List<Position> dirtList = new ArrayList<>();
-        List<Position> obstacleList = new ArrayList<>();
+        Set<Position> dirtList = new HashSet<>();
+        Set<Position> obstacleList = new HashSet<>();
 
 
 		/*
@@ -34,26 +34,19 @@ public class VacumAgent implements Agent {
                 String preceptOrientation = perceptNameMatcher.group(2);
                 if (perceptName.equals("HOME")) {
                     Matcher m = Pattern.compile("\\(\\s*HOME\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
-                    // TODO: brjóta niður DIRT, OBSTACLE
+
                     if (m.matches()) {
                         System.out.println("robot is at " + m.group(1) + "," + m.group(2));
 
-                        position = new Position(Integer.parseInt(m.group(1)) - 1, Integer.parseInt(m.group(2)) - 1);
+                        position = new Position(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
                     }
                 }
                     if(perceptName.equals("SIZE")) {
                         Matcher m2 = Pattern.compile("\\(\\s*SIZE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m2.matches()) {
                             System.out.println("size is " + m2.group(1) + "," + m2.group(2));
-                            // TODO: init stærð kortsinns
-                            int x = Integer.parseInt(m2.group(1));
-                            int y = Integer.parseInt(m2.group(2));
-                            initMap = new int[x][y];
-                            for (int i = 0; i < x; i++) {
-                                for (int j = 0; j < y; j++) {
-                                    initMap[i][j] = 0;
-                                }
-                            }
+
+                            size = new Position(Integer.parseInt(m2.group(1)), Integer.parseInt(m2.group(2)));
                         }
                     }
                     if(perceptName.equals("AT DIRT")) {
@@ -72,7 +65,6 @@ public class VacumAgent implements Agent {
                             System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
 
                             obstacleList.add(new Position(Integer.parseInt(m4.group(1)), Integer.parseInt(m4.group(2))));
-                            initMap[Integer.parseInt(m4.group(1))][Integer.parseInt(m4.group(2))] = 2;
                         }
 
                     }
@@ -100,29 +92,19 @@ public class VacumAgent implements Agent {
                 }
         }
 
-        for(Position pos : dirtList) {
-            initMap[pos.getX() - 1][pos.getY() - 1] = 1;
-        }
-
-        for(Position pos : obstacleList) {
-            initMap[pos.getX() - 1][pos.getY() - 1] = 2;
-        }
-
-        root = new StateNode(new State(position, orientation, initMap, dirtCount));
+        Map newMap = new Map(dirtList, obstacleList, size);
+        root = new StateNode(new State(position, orientation, newMap, dirtCount));
         root.setPathCost(0);
         actions = new LinkedList<>();
 
-        root.getState().printMap();
-        //System.out.println(root.getState().getMap()[0][1]);
-
-
+        printNodeCheck("ROOT", root);
 
         // TODO: setja inn algorithma
-        BFdumbSearch();
+        BFS();
 
     }
 
-    public void BFdumbSearch() {
+    public void BFS() {
         LinkedList<StateNode> frontier = new LinkedList<>();
         Set<Integer> visited = new HashSet<>();
         boolean done = false;
@@ -132,47 +114,75 @@ public class VacumAgent implements Agent {
         while (!frontier.isEmpty()) {
             StateNode tmpNode = frontier.remove();
 
-            System.out.println("XXXXXXXXXXXXXXXXXXXX");
-            for(StateNode i : frontier) {
-                System.out.println(i.getAction() + " ");
+            /*
+            if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
+                    tmpNode.getState().getOrientation() == Orientation.WEST)
+            {
+                printNodeCheck("Expanding", tmpNode);
             }
-            System.out.println("XXXXXXXXXXXXXXXXXXXX");
+            */
 
-            System.out.println("====================");
-            System.out.println("       Expanding    ");
-            System.out.println(tmpNode.getAction());
-            tmpNode.getState().printStateCheck();
+            /*
+            if(tmpNode.getParent() != null) {
+                if(tmpNode.getParent().getAction() == Action.SUCK) {
+                    printNodeCheck("Expandee", tmpNode);
+                }
+            }
+            */
 
+
+
+            //printNodeCheck("Expander", tmpNode);
             visited.add(tmpNode.hashCode());
-
-
-
-
-
-            //tmpNode.getState().printStateCheck();
-
             for (StateNode child: tmpNode.successorStates()) {
-                System.out.println("--------------------");
-                System.out.println(child.getAction());
-                System.out.println(child.getState().getOrientation());
-                child.getState().printStateCheck();
 
                 if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
+                    /*
+                    if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
+                            tmpNode.getState().getOrientation() == Orientation.WEST)
+                    {
+                        printNodeCheck("Child", child);
+                    }
+                    */
+
+                    //printNodeCheck("Child", child);
+
+
+                    if(child.getAction() == Action.SUCK) {
+                        printNodeCheck("Child", child);
+                        printNodeCheck("Parent", child.getParent());
+                    }
+
                     if(child.getState().goalTest()) {
                         // TODO: returna action lista
+                        System.out.println("====================");
+                        System.out.println("        FOUND       ");
+                        System.out.println("====================");
+
+                        StateNode iter = tmpNode;
+
+                        while(iter.getParent() != null) {
+                            printNodeCheck("iter", iter);
+                            iter = iter.getParent();
+                        }
+
+                        /*
                         this.actions.add(child.getAction());
-                        while (tmpNode.getParent() != null) {
+                        while (iter.getParent() != null) {
+                            //printNodeCheck("Child action", tmpNode);
                             this.actions.add(tmpNode.getAction());
                             tmpNode = tmpNode.getParent();
                         }
+                        for(Action a: actions){
+                            System.out.print(a + " - ");
+                        }
+                        */
                         return;
                     }
                     child.setParent(tmpNode);
                     frontier.add(child);
                 }
             }
-            System.out.println("=====================");
-
         }
     }
 
@@ -239,19 +249,15 @@ public class VacumAgent implements Agent {
                             }
                         }
                     }
-
                 }
             }
-
-
-
         }
     }
 
 
 
     public String nextAction(Collection<String> percepts) {
-        Action next = this.actions.remove();
+        Action next = this.actions.removeLast();
 
         switch (next) {
             case TURN_RIGHT:
@@ -277,6 +283,21 @@ public class VacumAgent implements Agent {
         String[] actions = { "TURN_ON", "TURN_OFF", "TURN_RIGHT", "TURN_LEFT", "GO", "SUCK" };
         return actions[random.nextInt(actions.length)];
         */
+    }
+
+    private void printNodeCheck(String header, StateNode node) {
+        System.out.println("=============================");
+        System.out.println("          " + header + "    ");
+        //System.out.println("Ori before: " + node.getParent().getState().getOrientation());
+        if(node.getParent() != null) {
+            System.out.println("Parent Action: " + node.getParent().getAction());
+        } else {
+            System.out.println("Parent Action: NULL");
+        }
+        System.out.println("Action: " + node.getAction());
+        node.getState().printStateCheck();
+        node.getState().getMap().printMap(node.getState().getPosition());
+        System.out.println("=============================");
     }
 
 

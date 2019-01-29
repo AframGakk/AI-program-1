@@ -1,3 +1,5 @@
+import javafx.geometry.Pos;
+
 import javax.naming.event.ObjectChangeListener;
 
 public class Position {
@@ -45,6 +47,16 @@ public class Position {
         this.Y--;
     }
 
+    public boolean compare(Object o) {
+        if (o == null) {
+            return false;
+        }
+
+        Position other = (Position) o;
+
+        return (this.X == other.getX()) && (this.Y == other.getY());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null) {
@@ -59,6 +71,17 @@ public class Position {
 
         return (this.X == other.X) && (this.Y == other.Y);
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+
+        result = prime * result + X;
+        result = prime * result + Y;
+        return result;
+    }
+
 
     @Override
     public String toString() {

@@ -40,10 +40,20 @@ public class StateNode implements Comparable<StateNode> {
         State nState;
 
 
-        if (this.state.goalTest()) {
+        if (this.state.getMap().getDirtLocations().size() == 0 && this.state.getPosition().compare(this.state.getHome())) {
             nState = new State(this.state);
             nState.executeMove(Action.TURN_OFF);
             nStateNode = new StateNode(nState, Action.TURN_OFF);
+            successors.add(nStateNode);
+            return successors;
+        }
+
+        // If position contains dirt
+        if (this.state.getMap().locationContainsDirt(this.state.getPosition())) {
+            System.out.println("---------- SHOULD SUCK ---------");
+            nState = new State(this.state);
+            nState.executeMove(Action.SUCK);
+            nStateNode = new StateNode(nState, Action.SUCK);
             successors.add(nStateNode);
             return successors;
         }
@@ -52,68 +62,18 @@ public class StateNode implements Comparable<StateNode> {
             nState = new State(this.state);
             nState.executeMove(Action.TURN_ON);
             nStateNode = new StateNode(nState, Action.TURN_ON);
-
             successors.add(nStateNode);
             return successors;
         }
 
 
-        // If position contains dirt
-        System.out.println(this.state.getMap()[this.state.getPosition().getY()][this.state.getPosition().getX()]);
-        if (this.state.getMap()[this.state.getPosition().getY()][this.state.getPosition().getX()] == 1) {
-            System.out.println("---------- SHOULD SUCK ---------");
+        if(this.state.getMap().nextIsAvailable(this.state.getPosition(), this.state.getOrientation())) {
             nState = new State(this.state);
-            nState.executeMove(Action.SUCK);
-            nStateNode = new StateNode(nState, Action.SUCK);
+            nState.executeMove(Action.GO);
+            nStateNode = new StateNode(nState, Action.GO);
             successors.add(nStateNode);
         }
 
-        switch (this.state.getOrientation()) {
-            case EAST:
-                // if position on x axis is NOT at the end of the environment
-                if(this.state.getPosition().getX() > 0) {
-                    if(this.state.getMap()[this.state.getPosition().getY()][this.state.getPosition().getX() - 1] != 2) {
-                        nState = new State(this.state);
-                        nState.executeMove(Action.GO);
-                        nStateNode = new StateNode(nState, Action.GO);
-                        successors.add(nStateNode);
-                    }
-                }
-                break;
-            case WEST:
-                if(this.state.getPosition().getX() < this.state.getMap().length) {
-                    if (this.state.getMap()[this.state.getPosition().getY()][this.state.getPosition().getX() + 1] != 2) {
-                        nState = new State(this.state);
-                        nState.executeMove(Action.GO);
-                        nStateNode = new StateNode(nState, Action.GO);
-                        successors.add(nStateNode);
-                    }
-                }
-                break;
-            case NORTH:
-                if(this.state.getPosition().getY() + 1 < this.state.getMap().length ) {
-                    if((this.state.getMap()[this.state.getPosition().getY() + 1][this.state.getPosition().getX()] != 2)) {
-                        nState = new State(this.state);
-                        nState.executeMove(Action.GO);
-                        nStateNode = new StateNode(nState, Action.GO);
-                        successors.add(nStateNode);
-                    }
-                }
-                break;
-            case SOUTH:
-                if(this.state.getPosition().getY() > 0) {
-
-                    if (this.state.getMap()[this.state.getPosition().getY() - 1][this.state.getPosition().getX()] != 2) {
-                        nState = new State(this.state);
-                        nState.executeMove(Action.GO);
-                        nStateNode = new StateNode(nState, Action.GO);
-                        successors.add(nStateNode);
-                    }
-                }
-                break;
-            default:
-                System.out.println("Invalid orientation");
-        }
 
         nState = new State(this.state);
         nState.executeMove(Action.TURN_LEFT);
@@ -166,26 +126,17 @@ public class StateNode implements Comparable<StateNode> {
 
         result = prime * result + this.getState().getPosition().getX();
         result = prime * result + this.getState().getPosition().getY();
-        result = prime * result + this.getState().getDirtCount();
-        result = prime * result + this.state.getOrientation().hashCode();
-
-
-
-        /*
-        switch (this.state.getOrientation()) {
-            case NORTH:
-                result = prime * result + 2;
-                break;
-            case SOUTH:
-                result = prime * result + 3;
-                break;
-            case WEST:
-                result = prime * result + 4;
-                break;
-            default:
-                result = prime * result + 5;
+        if(this.getState().getMap().getDirtLocations().size() == 0) {
+            result = prime * result + this.pathCost;
+        } else {
+            result = prime * result + this.getState().getMap().getDirtLocations().size();
         }
-        */
+        result = prime * result + this.state.getOrientation().hashCode();
+        if(this.action == null) {
+            result = prime * result + 1;
+        } else {
+            result = prime * result + this.action.hashCode();
+        }
 
         return result;
     }
