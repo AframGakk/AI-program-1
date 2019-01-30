@@ -101,7 +101,7 @@ public class VacumAgent implements Agent {
         printNodeCheck("ROOT", root);
 
         // TODO: setja inn algorithma
-        BFS();
+        DFS();
 
     }
 
@@ -198,44 +198,62 @@ public class VacumAgent implements Agent {
     public void DFS() {
         LinkedList<StateNode> frontier = new LinkedList<>();
         Set<Integer> visited = new HashSet<>();
-        boolean done = false;
 
         frontier.add(root);
 
         while (!frontier.isEmpty()) {
             StateNode tmpNode = frontier.remove();
 
-            visited.add(tmpNode.hashCode());
-/*
-            for (Action action: tmpNode.successors()) {
+            visited.add(tmpNode.getState().hashCode());
 
-                if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
-                    if(child.getState().goalTest()) {
-                        this.actions.add(child.getAction());
-                        while (tmpNode.getParent() != null) {
-                            this.actions.add(tmpNode.getAction());
-                            tmpNode = tmpNode.getParent();
+            List<Action> availableActions = tmpNode.successors();
+
+            for (Action action : availableActions) {
+
+                State childState = new State(
+                        tmpNode.getState().getPosition(),
+                        tmpNode.getState().getHome(),
+                        tmpNode.getState().isOn(),
+                        tmpNode.getState().getOrientation(),
+                        tmpNode.getState().getDirtCount(),
+                        tmpNode.getState().getScore(),
+                        tmpNode.getState().getMap(),
+                        tmpNode.getState().getDepth()
+                );
+
+                childState.executeMove(action);
+                StateNode child = new StateNode(childState, action);
+                child.setParent(tmpNode);
+                if (!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
+
+                    if (childState.goalTest()) {
+                        this.actions.add(action);
+                        StateNode iter = tmpNode;
+
+                        while (iter.getParent() != null) {
+                            this.actions.add(iter.getAction());
+                            iter = iter.getParent();
                         }
+
                         return;
                     }
-                    child.setParent(tmpNode);
                     frontier.addFirst(child);
                 }
             }
-            */
-
         }
     }
 
     public void uniformSearch() {
         PriorityQueue<StateNode> frontier = new PriorityQueue<>();
-        Set<State> visited = new HashSet<>();
-        boolean done = false;
+        Set<Integer> visited = new HashSet<>();
 
         frontier.add(root);
 
         while(!frontier.isEmpty()) {
-            StateNode tmpNode = frontier.remove();
+            StateNode tmpNode = frontier.poll();
+
+            visited.add(tmpNode.getState().hashCode());
+
             if(tmpNode.getState().goalTest()) {
                 this.actions.add(tmpNode.getAction());
                 while (tmpNode.getParent() != null) {
@@ -245,7 +263,7 @@ public class VacumAgent implements Agent {
                 return;
             }
 
-            visited.add(tmpNode.getState());
+
 /*
             for (StateNode child : tmpNode.successorStates()) {
                 if(!frontier.contains(child) && !visited.contains(child.hashCode())) {
