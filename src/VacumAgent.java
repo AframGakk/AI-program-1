@@ -100,9 +100,10 @@ public class VacumAgent implements Agent {
 
         printNodeCheck("ROOT", root);
 
-        // TODO: setja inn algorithma
-        DFS();
-
+        // Uncomment the search algoritham you want to use!!
+        //BFS();
+        //DFS();
+        uniformSearch();
     }
 
     public void BFS() {
@@ -263,26 +264,29 @@ public class VacumAgent implements Agent {
                 return;
             }
 
+            List<Action> availableActions = tmpNode.successors();
 
-/*
-            for (StateNode child : tmpNode.successorStates()) {
-                if(!frontier.contains(child) && !visited.contains(child.hashCode())) {
+            for (Action action : availableActions) {
+
+                State childState = new State (
+                        tmpNode.getState().getPosition(),
+                        tmpNode.getState().getHome(),
+                        tmpNode.getState().isOn(),
+                        tmpNode.getState().getOrientation(),
+                        tmpNode.getState().getDirtCount(),
+                        tmpNode.getState().getScore(),
+                        tmpNode.getState().getMap(),
+                        tmpNode.getState().getDepth()
+                );
+
+                childState.executeMove(action);
+                StateNode child = new StateNode(childState, action);
+                child.setParent(tmpNode);
+            
+                if (!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
                     frontier.add(child);
-                } else if (frontier.contains(child)) {
-                    for(StateNode node : frontier) {
-                        if(node == child) {
-                            if (child.getPathCost() < node.getPathCost()) {
-                                frontier.remove(node);
-                                frontier.add(child);
-                                break;
-                            }
-                        }
-                    }
-                }
-
+                }            
             }
-                                */
-
         }
     }
 
