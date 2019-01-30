@@ -7,6 +7,7 @@ public class StateNode implements Comparable<StateNode> {
     private Action action;
     private StateNode parent;
     private int pathCost;
+    private int distanceToStart;
 
 
     public StateNode() {
@@ -73,7 +74,7 @@ public class StateNode implements Comparable<StateNode> {
         }
         System.out.println("Action: " + node.getAction());
         node.getState().printStateCheck();
-        node.getState().getMap().printMap(node.getState().getPosition());
+        node.getState().getMap().printEnvironment(node.getState().getPosition());
         System.out.println("=============================");
     }
 
@@ -108,6 +109,14 @@ public class StateNode implements Comparable<StateNode> {
 
     public int getPathCost() {
         return pathCost;
+    }
+
+    public int getDistanceToStart() {
+        return distanceToStart;
+    }
+
+    public void setDistanceToStart(int distanceToStart) {
+        this.distanceToStart = distanceToStart;
     }
 
     @Override

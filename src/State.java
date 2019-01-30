@@ -13,12 +13,12 @@ public class State {
     private int score;
     private int atDepth;
 
-    private Map map;
+    private Environment map;
 
     public State() {}
 
     public State(Position position, Orientation orientation,
-                 Map map, int dirtCount) {
+                 Environment map, int dirtCount) {
         this.position = position;
         this.home = position;
         this.orientation = orientation;
@@ -36,7 +36,7 @@ public class State {
             Orientation orientation,
             int dirtCount,
             int score,
-            Map map,
+            Environment map,
             int atDepth
     )
     {
@@ -46,7 +46,7 @@ public class State {
         this.orientation = orientation;
         this.dirtCount = dirtCount;
         this.score = score;
-        this.map = new Map(map.getDirtLocations(), map.getObstacleLocations(), map.getSizeDimension());
+        this.map = new Environment(map.getDirtLocations(), map.getObstacleLocations(), map.getSizeDimension());
         this.atDepth = atDepth;
     }
 
@@ -57,7 +57,7 @@ public class State {
         this.orientation = newState.orientation;
         this.dirtCount = newState.getDirtCount();
         this.score = newState.getScore();
-        this.map = new Map(newState.getMap().getDirtLocations(),
+        this.map = new Environment(newState.getMap().getDirtLocations(),
                 newState.getMap().getObstacleLocations(),
                 new Position(newState.getMap().getSizeDimension().getX(), newState.getMap().getSizeDimension().getY()));
         this.atDepth = newState.getDepth();
@@ -78,7 +78,7 @@ public class State {
     public void setHome(Position home) {
         this.home = home;
     }
-    public void setMap(Map map) {
+    public void setMap(Environment map) {
         this.map = map;
     }
     public Orientation getOrientation() {
@@ -87,7 +87,7 @@ public class State {
     public void setOrientation(Orientation orientation) {
         this.orientation = orientation;
     }
-    public Map getMap() {
+    public Environment getMap() {
         return map;
     }
     public int getDirtCount() {

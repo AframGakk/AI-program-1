@@ -2,6 +2,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Math.abs;
+
 public class VacumAgent implements Agent {
     private LinkedList<Action> actions;
     StateNode root;
@@ -92,7 +94,7 @@ public class VacumAgent implements Agent {
                 }
         }
 
-        Map newMap = new Map(dirtList, obstacleList, size);
+        Environment newMap = new Environment(dirtList, obstacleList, size);
         root = new StateNode(new State(position, orientation, newMap, dirtList.size()));
         root.setPathCost(0);
         actions = new LinkedList<>();
@@ -103,7 +105,8 @@ public class VacumAgent implements Agent {
         // Uncomment the search algoritham you want to use!!
         //BFS();
         //DFS();
-        uniformSearch();
+        //uniformSearch();
+        Astar();
     }
 
     public void BFS() {
@@ -290,7 +293,126 @@ public class VacumAgent implements Agent {
         }
     }
 
+    public void Astar() {
 
+        // setup for A*
+        //HashMap<MapNode,MapNode> parentMap = new HashMap<MapNode,MapNode>();
+        Set<Integer> visited = new HashSet<>();
+
+        //Map<MapNode, Double> distances = initializeAllToInfinity();
+        Map<Integer, Integer> distances = new HashMap<Integer, Integer>();
+
+        //Queue<MapNode> priorityQueue = initQueue();
+        PriorityQueue<StateNode> frontier = new PriorityQueue<>();
+
+        //  enque StartNode, with distance 0
+        //startNode.setDistanceToStart(new Double(0));
+        // distances.put(startNode, new Double(0));
+        //priorityQueue.add(startNode);
+        StateNode current = null;
+
+        //  enque StartNode, with distance 0
+        root.setDistanceToStart(0);
+        distances.put(root.hashCode(), 0);
+        frontier.add(root);
+
+
+
+
+        while (!frontier.isEmpty()) {
+            current = frontier.remove();
+
+            if (!visited.contains(current.getState().hashCode()) ){
+                visited.add(current.getState().hashCode());
+
+                // goal test
+                if (current.getState().goalTest()) {
+                    reconstructActionList(current);
+                    return;
+                }
+
+                List<Action> availableActions = current.successors();
+
+
+
+                for (Action action : availableActions) {
+
+                    State childState = new State (
+                            current.getState().getPosition(),
+                            current.getState().getHome(),
+                            current.getState().isOn(),
+                            current.getState().getOrientation(),
+                            current.getState().getDirtCount(),
+                            current.getState().getScore(),
+                            current.getState().getMap(),
+                            current.getState().getDepth()
+                    );
+
+                    childState.executeMove(action);
+                    StateNode child = new StateNode(childState, action);
+                    child.setParent(current);
+
+                    if (!visited.contains(childState.hashCode()) ){
+
+                        /*
+                        // calculate predicted distance to the end node
+                        double predictedDistance = neighbor.getLocation().distance(endNode.getLocation());
+
+                        // 1. calculate distance to neighbor. 2. calculate dist from start node
+                        double neighborDistance = current.calculateDistance(neighbor);
+                        double totalDistance = current.getDistanceToStart() + neighborDistance + predictedDistance;
+                        */
+
+                        int heuristic = manhattanHeuristic(childState.getPosition(),
+                                childState.getHome(), childState.getMap().getDirtLocations().size());
+
+                        /*
+                        // check if distance smaller
+                        if(totalDistance < distances.get(neighbor) ){
+                            // update n's distance
+                            distances.put(neighbor, totalDistance);
+                            // used for PriorityQueue
+                            neighbor.setDistanceToStart(totalDistance);
+                            neighbor.setPredictedDistance(predictedDistance);
+                            // set parent
+                            parentMap.put(neighbor, current);
+                            // enqueue
+                            priorityQueue.add(neighbor);
+                        }
+                        */
+
+                        if(!distances.containsKey(child.hashCode())) {
+                            distances.put(child.hashCode(), Integer.MAX_VALUE);
+                        }
+
+                        if (heuristic < distances.get(child.hashCode())) {
+                            // update distance
+                            distances.put(child.hashCode(), heuristic);
+                            // set parent
+                            child.setParent(current);
+                            // frontier
+                            frontier.add(child);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    private int manhattanHeuristic(Position position, Position home, int dirtCount) {
+        return abs(position.getX() - home.getX()) + abs(position.getY() - home.getY()) + dirtCount;
+    }
+
+    private void reconstructActionList(StateNode end) {
+        this.actions.add(end.getAction());
+        StateNode iter = end;
+
+        while (iter.getParent() != null) {
+            this.actions.add(iter.getAction());
+            iter = iter.getParent();
+        }
+    }
 
     public String nextAction(Collection<String> percepts) {
         Action next = this.actions.removeLast();
@@ -333,7 +455,7 @@ public class VacumAgent implements Agent {
         }
         System.out.println("Action: " + node.getAction());
         node.getState().printStateCheck();
-        node.getState().getMap().printMap(node.getState().getPosition());
+        node.getState().getMap().printEnvironment(node.getState().getPosition());
         System.out.println("=============================");
     }
 
