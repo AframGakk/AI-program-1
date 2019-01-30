@@ -93,9 +93,10 @@ public class VacumAgent implements Agent {
         }
 
         Map newMap = new Map(dirtList, obstacleList, size);
-        root = new StateNode(new State(position, orientation, newMap, dirtCount));
+        root = new StateNode(new State(position, orientation, newMap, dirtList.size()));
         root.setPathCost(0);
         actions = new LinkedList<>();
+
 
         printNodeCheck("ROOT", root);
 
@@ -114,7 +115,70 @@ public class VacumAgent implements Agent {
         while (!frontier.isEmpty()) {
             StateNode tmpNode = frontier.remove();
 
-            /*
+            visited.add(tmpNode.getState().hashCode());
+
+            List<Action> availableActions = tmpNode.successors();
+
+            for (Action action : availableActions) {
+
+                State childState = new State(
+                        tmpNode.getState().getPosition(),
+                        tmpNode.getState().getHome(),
+                        tmpNode.getState().isOn(),
+                        tmpNode.getState().getOrientation(),
+                        tmpNode.getState().getDirtCount(),
+                        tmpNode.getState().getScore(),
+                        tmpNode.getState().getMap(),
+                        tmpNode.getState().getDepth()
+                );
+
+                childState.executeMove(action);
+                StateNode child = new StateNode(childState, action);
+                child.setParent(tmpNode);
+                if(!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
+
+                    if(childState.goalTest()) {
+                        this.actions.add(action);
+                        StateNode iter = tmpNode;
+
+                        while (iter.getParent() != null) {
+                            this.actions.add(iter.getAction());
+                            iter = iter.getParent();
+                        }
+
+                        return;
+                    }
+                    frontier.add(child);
+                }
+            }
+        }
+
+        /**
+         * GOOD PRINTS
+         * */
+
+        /*
+        if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
+            tmpNode.getState().getOrientation() == Orientation.WEST)
+        {
+            printNodeCheck("Child", child);
+        }
+                    */
+
+        /*
+                System.out.println("========    CHILD   ========");
+                childState.printStateCheck();
+                */
+
+        /*
+        System.out.println("======  ACTIONS ======");
+        for (Action action : availableActions) {
+            System.out.println(action);
+
+        }
+        */
+
+        /*
             if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
                     tmpNode.getState().getOrientation() == Orientation.WEST)
             {
@@ -129,61 +193,6 @@ public class VacumAgent implements Agent {
                 }
             }
             */
-
-
-
-            //printNodeCheck("Expander", tmpNode);
-            visited.add(tmpNode.hashCode());
-            for (StateNode child: tmpNode.successorStates()) {
-
-                if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
-                    /*
-                    if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
-                            tmpNode.getState().getOrientation() == Orientation.WEST)
-                    {
-                        printNodeCheck("Child", child);
-                    }
-                    */
-
-                    //printNodeCheck("Child", child);
-
-
-                    if(child.getAction() == Action.SUCK) {
-                        printNodeCheck("Child", child);
-                        printNodeCheck("Parent", child.getParent());
-                    }
-
-                    if(child.getState().goalTest()) {
-                        // TODO: returna action lista
-                        System.out.println("====================");
-                        System.out.println("        FOUND       ");
-                        System.out.println("====================");
-
-                        StateNode iter = tmpNode;
-
-                        while(iter.getParent() != null) {
-                            printNodeCheck("iter", iter);
-                            iter = iter.getParent();
-                        }
-
-                        /*
-                        this.actions.add(child.getAction());
-                        while (iter.getParent() != null) {
-                            //printNodeCheck("Child action", tmpNode);
-                            this.actions.add(tmpNode.getAction());
-                            tmpNode = tmpNode.getParent();
-                        }
-                        for(Action a: actions){
-                            System.out.print(a + " - ");
-                        }
-                        */
-                        return;
-                    }
-                    child.setParent(tmpNode);
-                    frontier.add(child);
-                }
-            }
-        }
     }
 
     public void DFS() {
@@ -197,8 +206,8 @@ public class VacumAgent implements Agent {
             StateNode tmpNode = frontier.remove();
 
             visited.add(tmpNode.hashCode());
-
-            for (StateNode child: tmpNode.successorStates()) {
+/*
+            for (Action action: tmpNode.successors()) {
 
                 if(!visited.contains(child.hashCode()) && !frontier.contains(child)) {
                     if(child.getState().goalTest()) {
@@ -213,12 +222,14 @@ public class VacumAgent implements Agent {
                     frontier.addFirst(child);
                 }
             }
+            */
+
         }
     }
 
     public void uniformSearch() {
         PriorityQueue<StateNode> frontier = new PriorityQueue<>();
-        Set<Integer> visited = new HashSet<>();
+        Set<State> visited = new HashSet<>();
         boolean done = false;
 
         frontier.add(root);
@@ -234,8 +245,8 @@ public class VacumAgent implements Agent {
                 return;
             }
 
-            visited.add(tmpNode.hashCode());
-
+            visited.add(tmpNode.getState());
+/*
             for (StateNode child : tmpNode.successorStates()) {
                 if(!frontier.contains(child) && !visited.contains(child.hashCode())) {
                     frontier.add(child);
@@ -250,7 +261,10 @@ public class VacumAgent implements Agent {
                         }
                     }
                 }
+
             }
+                                */
+
         }
     }
 
@@ -289,6 +303,7 @@ public class VacumAgent implements Agent {
         System.out.println("=============================");
         System.out.println("          " + header + "    ");
         //System.out.println("Ori before: " + node.getParent().getState().getOrientation());
+        System.out.println(node.hashCode());
         if(node.getParent() != null) {
             System.out.println("Parent Action: " + node.getParent().getAction());
         } else {

@@ -1,5 +1,6 @@
 import javafx.geometry.Pos;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class Map {
@@ -10,8 +11,11 @@ public class Map {
     public Map() {}
 
     public Map(Set<Position> dirt, Set<Position> obstacle, Position dimen) {
-        this.obstacleLocations = obstacle;
-        this.dirtLocations = dirt;
+        this.obstacleLocations = new HashSet<>();
+        this.dirtLocations = new HashSet<>();
+
+        this.obstacleLocations.addAll(obstacle);
+        this.dirtLocations.addAll(dirt);
         this.sizeDimension = dimen;
     }
 

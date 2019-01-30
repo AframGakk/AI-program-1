@@ -8,6 +8,7 @@ public class StateNode implements Comparable<StateNode> {
     private StateNode parent;
     private int pathCost;
 
+
     public StateNode() {
 
     }
@@ -34,58 +35,48 @@ public class StateNode implements Comparable<StateNode> {
         this.pathCost = cost;
     }
 
-    public List<StateNode> successorStates() {
-        List<StateNode> successors = new ArrayList<>();
-        StateNode nStateNode;
-        State nState;
+    public List<Action> successors() {
+        List<Action> successors = new ArrayList<>();
 
+        if (!this.state.isOn()) {
+            successors.add(Action.TURN_ON);
+            return successors;
+        }
 
         if (this.state.getMap().getDirtLocations().size() == 0 && this.state.getPosition().compare(this.state.getHome())) {
-            nState = new State(this.state);
-            nState.executeMove(Action.TURN_OFF);
-            nStateNode = new StateNode(nState, Action.TURN_OFF);
-            successors.add(nStateNode);
-            return successors;
+            successors.add(Action.TURN_OFF);
         }
 
         // If position contains dirt
         if (this.state.getMap().locationContainsDirt(this.state.getPosition())) {
-            System.out.println("---------- SHOULD SUCK ---------");
-            nState = new State(this.state);
-            nState.executeMove(Action.SUCK);
-            nStateNode = new StateNode(nState, Action.SUCK);
-            successors.add(nStateNode);
-            return successors;
+            successors.add(Action.SUCK);
         }
-
-        if (!this.state.isOn()) {
-            nState = new State(this.state);
-            nState.executeMove(Action.TURN_ON);
-            nStateNode = new StateNode(nState, Action.TURN_ON);
-            successors.add(nStateNode);
-            return successors;
-        }
-
 
         if(this.state.getMap().nextIsAvailable(this.state.getPosition(), this.state.getOrientation())) {
-            nState = new State(this.state);
-            nState.executeMove(Action.GO);
-            nStateNode = new StateNode(nState, Action.GO);
-            successors.add(nStateNode);
+            successors.add(Action.GO);
         }
 
-
-        nState = new State(this.state);
-        nState.executeMove(Action.TURN_LEFT);
-        nStateNode = new StateNode(nState, Action.TURN_LEFT);
-        successors.add(nStateNode);
-        nState = new State(this.state);
-        nState.executeMove(Action.TURN_RIGHT);
-        nStateNode = new StateNode(nState, Action.TURN_RIGHT);
-        successors.add(nStateNode);
+        successors.add(Action.TURN_LEFT);
+        successors.add(Action.TURN_RIGHT);
 
         return successors;
     }
+
+    private void printNodeCheck(String header, StateNode node) {
+        System.out.println("=============================");
+        System.out.println("          " + header + "    ");
+        //System.out.println("Ori before: " + node.getParent().getState().getOrientation());
+        if(node.getParent() != null) {
+            System.out.println("Parent Action: " + node.getParent().getAction());
+        } else {
+            System.out.println("Parent Action: NULL");
+        }
+        System.out.println("Action: " + node.getAction());
+        node.getState().printStateCheck();
+        node.getState().getMap().printMap(node.getState().getPosition());
+        System.out.println("=============================");
+    }
+
 
     public void setState(State state) {
         this.state = state;
@@ -126,10 +117,10 @@ public class StateNode implements Comparable<StateNode> {
 
         result = prime * result + this.getState().getPosition().getX();
         result = prime * result + this.getState().getPosition().getY();
-        if(this.getState().getMap().getDirtLocations().size() == 0) {
+        if(this.getState().getDirtCount() == 0) {
             result = prime * result + this.pathCost;
         } else {
-            result = prime * result + this.getState().getMap().getDirtLocations().size();
+            result = prime * result + this.getState().getDirtCount();
         }
         result = prime * result + this.state.getOrientation().hashCode();
         if(this.action == null) {
@@ -141,20 +132,17 @@ public class StateNode implements Comparable<StateNode> {
         return result;
     }
 
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if(obj == this){
             return true;
-        if (obj == null)
+        }
+        if(!(obj instanceof StateNode)){
             return false;
-        if (getClass() != obj.getClass())
-            return false;
-        StateNode other = (StateNode) obj;
-        if (state != other.getState())
-            return false;
-        if (action != other.getAction())
-            return false;
-        return true;
+        }
+        StateNode other = (StateNode)obj;
+        return (this.getState().equals(other.getState()));
     }
 
     @Override
