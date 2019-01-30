@@ -9,10 +9,7 @@ public class VacumAgent implements Agent {
     StateNode root;
 
     public void init(Collection<String> percepts) {
-        State initState = new State();
-
         Position size = new Position(0, 0);
-        int dirtCount = 0;
         Position position = new Position(0,0);
         Orientation orientation = Orientation.NORTH;
         Set<Position> dirtList = new HashSet<>();
@@ -57,7 +54,6 @@ public class VacumAgent implements Agent {
                             //System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
 
                             dirtList.add(new Position(Integer.parseInt(m3.group(1)), Integer.parseInt(m3.group(2))));
-                            dirtCount++;
                         }
 
                     }
@@ -103,8 +99,8 @@ public class VacumAgent implements Agent {
         printNodeCheck("ROOT", root);
 
         // Uncomment the search algoritham you want to use!!
-        BFS();
-        //DFS();
+        //BFS();
+        DFS();
         //uniformSearch();
         //Astar();
     }
@@ -392,22 +388,25 @@ public class VacumAgent implements Agent {
     }
 
     public String nextAction(Collection<String> percepts) {
-        Action next = this.actions.removeLast();
+        if (!this.actions.isEmpty()) {
+            Action next = this.actions.removeLast();
 
-        switch (next) {
-            case TURN_RIGHT:
-                return "TURN_RIGHT";
-            case TURN_LEFT:
-                return "TURN_LEFT";
-            case TURN_OFF:
-                return "TURN_OFF";
-            case TURN_ON:
-                return "TURN_ON";
-            case SUCK:
-                return "SUCK";
-            default:
-                return "GO";
+            switch (next) {
+                case TURN_RIGHT:
+                    return "TURN_RIGHT";
+                case TURN_LEFT:
+                    return "TURN_LEFT";
+                case TURN_OFF:
+                    return "TURN_OFF";
+                case TURN_ON:
+                    return "TURN_ON";
+                case SUCK:
+                    return "SUCK";
+                default:
+                    return "GO";
+            }
         }
+        return "";
     }
 
     private void printNodeCheck(String header, StateNode node) {

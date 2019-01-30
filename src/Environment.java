@@ -3,6 +3,11 @@ import javafx.geometry.Pos;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * The virtual environment holds a set of dirt locations and obstacles and a Position class for
+ * the dimensions of the environment (the size).
+ *
+ * */
 public class Environment {
     private Set<Position> dirtLocations;
     private Set<Position> obstacleLocations;
@@ -41,6 +46,9 @@ public class Environment {
         this.sizeDimension = sizeDimension;
     }
 
+    /*
+    * Returns "true" if the location on the environment is available in front of the bot.
+    * */
     public boolean nextIsAvailable(Position position, Orientation orientation) {
         Position next;
 
@@ -63,6 +71,7 @@ public class Environment {
         }
     }
 
+    // Location
     public boolean locationContainsDirt(Position position) {
         return dirtLocations.contains(position);
     }
