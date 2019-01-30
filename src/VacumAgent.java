@@ -38,7 +38,7 @@ public class VacumAgent implements Agent {
                     Matcher m = Pattern.compile("\\(\\s*HOME\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
 
                     if (m.matches()) {
-                        System.out.println("robot is at " + m.group(1) + "," + m.group(2));
+                        //System.out.println("robot is at " + m.group(1) + "," + m.group(2));
 
                         position = new Position(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
                     }
@@ -46,7 +46,7 @@ public class VacumAgent implements Agent {
                     if(perceptName.equals("SIZE")) {
                         Matcher m2 = Pattern.compile("\\(\\s*SIZE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m2.matches()) {
-                            System.out.println("size is " + m2.group(1) + "," + m2.group(2));
+                            //System.out.println("size is " + m2.group(1) + "," + m2.group(2));
 
                             size = new Position(Integer.parseInt(m2.group(1)), Integer.parseInt(m2.group(2)));
                         }
@@ -54,7 +54,7 @@ public class VacumAgent implements Agent {
                     if(perceptName.equals("AT DIRT")) {
                         Matcher m3 = Pattern.compile("\\(\\s*AT DIRT\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m3.matches()) {
-                            System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
+                            //System.out.println("dirt is at " + m3.group(1) + "," + m3.group(2));
 
                             dirtList.add(new Position(Integer.parseInt(m3.group(1)), Integer.parseInt(m3.group(2))));
                             dirtCount++;
@@ -64,7 +64,7 @@ public class VacumAgent implements Agent {
                     if(perceptName.equals("AT OBSTACLE")) {
                         Matcher m4 = Pattern.compile("\\(\\s*AT OBSTACLE\\s+([0-9]+)\\s+([0-9]+)\\s*\\)").matcher(percept);
                         if(m4.matches()) {
-                            System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
+                            //System.out.println("obstacle is at " + m4.group(1) + "," + m4.group(2));
 
                             obstacleList.add(new Position(Integer.parseInt(m4.group(1)), Integer.parseInt(m4.group(2))));
                         }
@@ -73,7 +73,7 @@ public class VacumAgent implements Agent {
                     if(preceptOrientation.equals("ORIENTATION")) {
                         Matcher m5 = Pattern.compile("\\(\\s*ORIENTATION+\\s*([^\\s]+).*\\)").matcher(percept);
                         if(m5.matches()) {
-                            System.out.println("orientation is " + m5.group(1));
+                            //System.out.println("orientation is " + m5.group(1));
                             //adda inni eitthvað
                             switch (m5.group(1)) {
                                 case "NORTH":
@@ -156,47 +156,6 @@ public class VacumAgent implements Agent {
                 }
             }
         }
-
-        /**
-         * GOOD PRINTS
-         * */
-
-        /*
-        if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
-            tmpNode.getState().getOrientation() == Orientation.WEST)
-        {
-            printNodeCheck("Child", child);
-        }
-                    */
-
-        /*
-                System.out.println("========    CHILD   ========");
-                childState.printStateCheck();
-                */
-
-        /*
-        System.out.println("======  ACTIONS ======");
-        for (Action action : availableActions) {
-            System.out.println(action);
-
-        }
-        */
-
-        /*
-            if(tmpNode.getState().getPosition().getX() == 2 && tmpNode.getState().getPosition().getY() == 3 &&
-                    tmpNode.getState().getOrientation() == Orientation.WEST)
-            {
-                printNodeCheck("Expanding", tmpNode);
-            }
-            */
-
-            /*
-            if(tmpNode.getParent() != null) {
-                if(tmpNode.getParent().getAction() == Action.SUCK) {
-                    printNodeCheck("Expandee", tmpNode);
-                }
-            }
-            */
     }
 
     public void DFS() {
@@ -295,45 +254,48 @@ public class VacumAgent implements Agent {
 
     public void Astar() {
 
-        // setup for A*
-        //HashMap<MapNode,MapNode> parentMap = new HashMap<MapNode,MapNode>();
+        AlgoConfig stats = new AlgoConfig();
+
         Set<Integer> visited = new HashSet<>();
 
-        //Map<MapNode, Double> distances = initializeAllToInfinity();
-        Map<Integer, Integer> distances = new HashMap<Integer, Integer>();
+        PriorityQueue<HStateNode> frontier = new PriorityQueue<>();
 
-        //Queue<MapNode> priorityQueue = initQueue();
-        PriorityQueue<StateNode> frontier = new PriorityQueue<>();
+        HStateNode hroot = new HStateNode(new State(root.getState().getPosition(), root.getState().getOrientation(),
+                root.getState().getMap(), root.getState().getMap().getDirtLocations().size()));
 
-        //  enque StartNode, with distance 0
-        //startNode.setDistanceToStart(new Double(0));
-        // distances.put(startNode, new Double(0));
-        //priorityQueue.add(startNode);
-        StateNode current = null;
+
+        HStateNode current = null;
 
         //  enque StartNode, with distance 0
-        root.setDistanceToStart(0);
-        distances.put(root.hashCode(), 0);
-        frontier.add(root);
+        hroot.setPathCost(manhattanHeuristic(hroot.getState().getPosition(), hroot.getState().getHome(),
+                hroot.getState().getMap().getDirtLocations()));
 
+        hroot.setPathCost(0);
+
+        frontier.add(hroot);
 
 
 
         while (!frontier.isEmpty()) {
-            current = frontier.remove();
+
+            stats.setFrontierSize(Math.max(stats.getFrontierSize(), frontier.size()));
+
+            current = frontier.poll();
 
             if (!visited.contains(current.getState().hashCode()) ){
                 visited.add(current.getState().hashCode());
 
                 // goal test
                 if (current.getState().goalTest()) {
+                    stats.setCost(current.getPathCost());
                     reconstructActionList(current);
+                    stats.printTotals();
                     return;
                 }
 
+                stats.incrExp();
+
                 List<Action> availableActions = current.successors();
-
-
 
                 for (Action action : availableActions) {
 
@@ -349,50 +311,21 @@ public class VacumAgent implements Agent {
                     );
 
                     childState.executeMove(action);
-                    StateNode child = new StateNode(childState, action);
+                    HStateNode child = new HStateNode(childState, action);
+                    child.setPathCost(current.getPathCost() + 1);
                     child.setParent(current);
 
                     if (!visited.contains(childState.hashCode()) ){
 
-                        /*
-                        // calculate predicted distance to the end node
-                        double predictedDistance = neighbor.getLocation().distance(endNode.getLocation());
-
-                        // 1. calculate distance to neighbor. 2. calculate dist from start node
-                        double neighborDistance = current.calculateDistance(neighbor);
-                        double totalDistance = current.getDistanceToStart() + neighborDistance + predictedDistance;
-                        */
-
                         int heuristic = manhattanHeuristic(childState.getPosition(),
-                                childState.getHome(), childState.getMap().getDirtLocations().size());
+                                childState.getHome(), childState.getMap().getDirtLocations());
 
-                        /*
-                        // check if distance smaller
-                        if(totalDistance < distances.get(neighbor) ){
-                            // update n's distance
-                            distances.put(neighbor, totalDistance);
-                            // used for PriorityQueue
-                            neighbor.setDistanceToStart(totalDistance);
-                            neighbor.setPredictedDistance(predictedDistance);
-                            // set parent
-                            parentMap.put(neighbor, current);
-                            // enqueue
-                            priorityQueue.add(neighbor);
-                        }
-                        */
-
-                        if(!distances.containsKey(child.hashCode())) {
-                            distances.put(child.hashCode(), Integer.MAX_VALUE);
-                        }
-
-                        if (heuristic < distances.get(child.hashCode())) {
-                            // update distance
-                            distances.put(child.hashCode(), heuristic);
-                            // set parent
-                            child.setParent(current);
-                            // frontier
-                            frontier.add(child);
-                        }
+                        // update distance
+                        child.setManhattanDistance(heuristic + child.getPathCost());
+                        // set parent
+                        child.setParent(current);
+                        // frontier
+                        frontier.add(child);
                     }
                 }
             }
@@ -400,13 +333,29 @@ public class VacumAgent implements Agent {
 
     }
 
-    private int manhattanHeuristic(Position position, Position home, int dirtCount) {
-        return abs(position.getX() - home.getX()) + abs(position.getY() - home.getY()) + dirtCount;
+    private int manhattanHeuristic(Position position, Position home, Set<Position> dirtList) {
+        int dirtCount = dirtList.size();
+        int total = 0;
+
+        if (dirtCount != 0) {
+
+            // if there is dirt left set h value as sum of manhattan distance from current position
+            // to each dirt positions and the manhattan distance from the same dirt to home position
+            for(Position dirtPosition : dirtList){
+                int distance = Math.abs(position.getX() - dirtPosition.getX()) + Math.abs(position.getY() - dirtPosition.getY()) +
+                        Math.abs(home.getX() - dirtPosition.getX()) + Math.abs(home.getY() - dirtPosition.getY());
+                // pick the dirt farthest away from us so the overall cost is reduced
+                if(distance > dirtCount) dirtCount = distance;
+            }
+            total = dirtCount;
+        }
+
+        return abs(position.getX() - home.getX()) + abs(position.getY() - home.getY()) + total;
     }
 
-    private void reconstructActionList(StateNode end) {
+    private void reconstructActionList(HStateNode end) {
         this.actions.add(end.getAction());
-        StateNode iter = end;
+        HStateNode iter = end;
 
         while (iter.getParent() != null) {
             this.actions.add(iter.getAction());
@@ -431,16 +380,6 @@ public class VacumAgent implements Agent {
             default:
                 return "GO";
         }
-
-        /*
-        System.out.print("perceiving:");
-        for(String percept:percepts) {
-            System.out.print("'" + percept + "', ");
-        }
-        System.out.println("");
-        String[] actions = { "TURN_ON", "TURN_OFF", "TURN_RIGHT", "TURN_LEFT", "GO", "SUCK" };
-        return actions[random.nextInt(actions.length)];
-        */
     }
 
     private void printNodeCheck(String header, StateNode node) {
@@ -458,6 +397,6 @@ public class VacumAgent implements Agent {
         node.getState().getMap().printEnvironment(node.getState().getPosition());
         System.out.println("=============================");
     }
-
-
 }
+
+
