@@ -103,13 +103,15 @@ public class VacumAgent implements Agent {
         printNodeCheck("ROOT", root);
 
         // Uncomment the search algoritham you want to use!!
-        //BFS();
+        BFS();
         //DFS();
         //uniformSearch();
-        Astar();
+        //Astar();
     }
 
     public void BFS() {
+        AlgoConfig stats = new AlgoConfig();
+
         LinkedList<StateNode> frontier = new LinkedList<>();
         Set<Integer> visited = new HashSet<>();
         boolean done = false;
@@ -117,12 +119,15 @@ public class VacumAgent implements Agent {
         frontier.add(root);
 
         while (!frontier.isEmpty()) {
+            stats.setFrontierSize(Math.max(stats.getFrontierSize(), frontier.size()));
+
             StateNode tmpNode = frontier.remove();
 
             visited.add(tmpNode.getState().hashCode());
 
             List<Action> availableActions = tmpNode.successors();
 
+            stats.incrExp();
             for (Action action : availableActions) {
 
                 State childState = new State(
@@ -139,9 +144,14 @@ public class VacumAgent implements Agent {
                 childState.executeMove(action);
                 StateNode child = new StateNode(childState, action);
                 child.setParent(tmpNode);
+                child.setPathCost(tmpNode.getPathCost() + 1);
                 if(!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
 
                     if(childState.goalTest()) {
+
+                        stats.setCost(child.getPathCost());
+                        stats.printTotals();
+
                         this.actions.add(action);
                         StateNode iter = tmpNode;
 
@@ -159,18 +169,23 @@ public class VacumAgent implements Agent {
     }
 
     public void DFS() {
+        AlgoConfig stats = new AlgoConfig();
+
         LinkedList<StateNode> frontier = new LinkedList<>();
         Set<Integer> visited = new HashSet<>();
 
         frontier.add(root);
 
         while (!frontier.isEmpty()) {
+            stats.setFrontierSize(Math.max(stats.getFrontierSize(), frontier.size()));
+
             StateNode tmpNode = frontier.remove();
 
             visited.add(tmpNode.getState().hashCode());
 
             List<Action> availableActions = tmpNode.successors();
 
+            stats.incrExp();
             for (Action action : availableActions) {
 
                 State childState = new State(
@@ -187,9 +202,14 @@ public class VacumAgent implements Agent {
                 childState.executeMove(action);
                 StateNode child = new StateNode(childState, action);
                 child.setParent(tmpNode);
+                child.setPathCost(tmpNode.getPathCost() + 1);
                 if (!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
 
                     if (childState.goalTest()) {
+
+                        stats.setCost(child.getPathCost());
+                        stats.printTotals();
+
                         this.actions.add(action);
                         StateNode iter = tmpNode;
 
@@ -207,17 +227,24 @@ public class VacumAgent implements Agent {
     }
 
     public void uniformSearch() {
+        AlgoConfig stats = new AlgoConfig();
+
         PriorityQueue<StateNode> frontier = new PriorityQueue<>();
         Set<Integer> visited = new HashSet<>();
 
         frontier.add(root);
 
         while(!frontier.isEmpty()) {
+            stats.setFrontierSize(Math.max(stats.getFrontierSize(), frontier.size()));
+
             StateNode tmpNode = frontier.poll();
 
             visited.add(tmpNode.getState().hashCode());
 
             if(tmpNode.getState().goalTest()) {
+                stats.setCost(tmpNode.getPathCost());
+                stats.printTotals();
+
                 this.actions.add(tmpNode.getAction());
                 while (tmpNode.getParent() != null) {
                     this.actions.add(tmpNode.getAction());
@@ -228,6 +255,7 @@ public class VacumAgent implements Agent {
 
             List<Action> availableActions = tmpNode.successors();
 
+            stats.incrExp();
             for (Action action : availableActions) {
 
                 State childState = new State (
@@ -244,7 +272,7 @@ public class VacumAgent implements Agent {
                 childState.executeMove(action);
                 StateNode child = new StateNode(childState, action);
                 child.setParent(tmpNode);
-            
+                child.setPathCost(tmpNode.getPathCost() + 1);
                 if (!visited.contains(childState.hashCode()) && !frontier.contains(child)) {
                     frontier.add(child);
                 }            
